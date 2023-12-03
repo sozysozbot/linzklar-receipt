@@ -4,30 +4,6 @@
   <meta charset="utf-8">
   <title>燐字領収書</title>
 </head>
-
-<body style="font-size: 30px;">
-  <h1>燐字領収書</h1>
-  <textarea id="input" style="font-size: 30px;" rows="12" cols="140">
-[
-  { "サイズ": 2, "行番号": 0, "開始位置": 0, "内容": "汝於言将机戦人等" },
-  { "サイズ": 2, "行番号": 2, "開始位置": 0, "内容": "与銭而受之物如此" },
-  { "サイズ": 2, "行番号": 4.8, "開始位置": 0, "内容": "机戦" }, { "サイズ": 1, "行番号": 5.3, "終了位置": 16, "内容": "六十百" },
-  { "サイズ": 2, "行番号": 7.6, "開始位置": 0, "内容": "紙机戦" }, { "サイズ": 1, "行番号": 8.1, "終了位置": 16, "内容": "十五百" },
-  { "サイズ": 2, "行番号": 10.4, "開始位置": 0, "内容": "軟学清字" }, { "サイズ": 1, "行番号": 10.9, "終了位置": 16, "内容": "五百" },
-  { "サイズ": 2, "行番号": 13.2, "開始位置": 0, "内容": "斥銭" }, { "サイズ": 1, "行番号": 13.7, "終了位置": 16, "内容": "五百" },
-  { "サイズ": 2, "行番号": 16, "開始位置": 0, "内容": "全" }, { "サイズ": 1, "行番号": 16.5, "終了位置": 16, "内容": "七十百言将銭" },
-  { "サイズ": 1, "行番号": 18.6, "開始位置": 0, "内容": "十二月九日" },
-  { "サイズ": 2, "行番号": 20.2, "開始位置": 0, "内容": "如右" }
-]
-  </textarea>
-  <br>
-  <button onclick="generate_image(JSON.parse(document.getElementById('input').value))"
-    style="font-size: 80px;">生成</button>
-  <br>
-  <canvas height="591" width="1181" style="border: 5px dashed blue; margin: 15px 0 10px 0" id="main_canvas"></canvas>
-  <br>
-  <button onclick="download_image()" style="font-size: 80px;">下載</button>
-</body>
 <script>
   /**************
    * 品目のリスト
@@ -42,6 +18,98 @@
     { name: "裁六軸", price: 500 },
     { name: "斥銭", price: -500 },
   ];
+</script>
+
+<body style="font-size: 12px;">
+  <h1>燐字領収書</h1>
+  <form id="form">
+    <ul>
+      <li>
+        <label for="title_text">タイトルテキスト（半角スラッシュで改行）：</label>
+        <input id="title_text" value="汝於言将机戦人等/与銭而受之物如此" style="font-size: 12px;" size="30">
+      </li>
+      <li>
+        品物:<ul>
+          <script>
+
+            document.write(`<table>
+          ${PRODUCTS.map(o => `<tr>
+            <td>${o.name}</td>
+            <td>:&nbsp;&nbsp;&nbsp;</td>
+            <td><input type="number" id="count_${o.name}" min="0" max="5" style="font-size: 12px; line-height: 1.2em" size="3" value="0"></td>
+            <td>×</td>
+            <td style="text-align: right">${o.price}円</td>
+          </tr>`).join("")}
+        </table>
+          `)
+          </script>
+        </ul>
+      </li>
+      <li>日付:
+        <input type="number" id="month" min="1" max="12" size="4" style="font-size: 12px;" value="12">月<input
+          type="number" id="month" min="1" max="31" size="4" style="font-size: 12px;" value="9">日
+      </li>
+    </ul>
+
+  </form>
+  <button
+    onclick="document.getElementById('input').value = make_json([...document.querySelectorAll('form input')].map(dom => ({id: dom.id, value: dom.value})))"
+    style="font-size: 24px;">注文</button>
+  <br>
+
+  <textarea id="input" style="font-size: 12px;" rows="12" cols="140">
+[
+  { "サイズ": 2, "行番号": 0, "開始位置": 0, "内容": "汝於言将机戦人等" },
+  { "サイズ": 2, "行番号": 2, "開始位置": 0, "内容": "与銭而受之物如此" },
+  { "サイズ": 2, "行番号": 4.8, "開始位置": 0, "内容": "机戦" }, { "サイズ": 1, "行番号": 5.3, "終了位置": 16, "内容": "六十百" },
+  { "サイズ": 2, "行番号": 7.6, "開始位置": 0, "内容": "紙机戦" }, { "サイズ": 1, "行番号": 8.1, "終了位置": 16, "内容": "十五百" },
+  { "サイズ": 2, "行番号": 10.4, "開始位置": 0, "内容": "軟学清字" }, { "サイズ": 1, "行番号": 10.9, "終了位置": 16, "内容": "五百" },
+  { "サイズ": 2, "行番号": 13.2, "開始位置": 0, "内容": "斥銭" }, { "サイズ": 1, "行番号": 13.7, "終了位置": 16, "内容": "五百" },
+  { "サイズ": 2, "行番号": 16, "開始位置": 0, "内容": "全" }, { "サイズ": 1, "行番号": 16.5, "終了位置": 16, "内容": "七十百言将銭" },
+  { "サイズ": 1, "行番号": 18.6, "開始位置": 0, "内容": "十二月九日" },
+  { "サイズ": 2, "行番号": 20.2, "開始位置": 0, "内容": "如右" }
+]
+  </textarea>
+  <br>
+  <button onclick="generate_image(JSON.parse(document.getElementById('input').value))"
+    style="font-size: 24px;">生成</button>
+  <br>
+  <div style="zoom: 0.4;">
+    <canvas height="591" width="1181" style="border: 5px dashed blue; margin: 15px 0 10px 0" id="main_canvas"></canvas>
+  </div>
+  <br>
+  <button onclick="download_image()" style="font-size: 24px;">下載</button>
+</body>
+<script>
+  /**
+   * @param {{id: string, value: string}[]} form_info 
+   */
+  function make_json(form_info) {
+    const form = new Map(form_info.map(({ id, value }) => [id, value]));
+    const title_text_lines = form.get("title_text").split("/");
+
+    const content = title_text_lines.map((line, index) => (
+      { "サイズ": 2, "行番号": index * 2, "開始位置": 0, "内容": line }
+    ));
+
+    // これは [ "机戦", "机戦", "机戦", "紙机戦", "軟学清字", "極軟片遊" ] みたいな配列になる
+    const products = [...form].flatMap(([id, value]) => {
+      if (!id.startsWith("count_")) return [];
+      return Array.from({ length: value }, () => id.slice("count_".length));
+    });
+
+
+    return JSON.stringify([
+      ...content,
+      { "サイズ": 2, "行番号": 4.8, "開始位置": 0, "内容": "机戦" }, { "サイズ": 1, "行番号": 5.3, "終了位置": 16, "内容": "六十百" },
+      { "サイズ": 2, "行番号": 7.6, "開始位置": 0, "内容": "紙机戦" }, { "サイズ": 1, "行番号": 8.1, "終了位置": 16, "内容": "十五百" },
+      { "サイズ": 2, "行番号": 10.4, "開始位置": 0, "内容": "軟学清字" }, { "サイズ": 1, "行番号": 10.9, "終了位置": 16, "内容": "五百" },
+      { "サイズ": 2, "行番号": 13.2, "開始位置": 0, "内容": "斥銭" }, { "サイズ": 1, "行番号": 13.7, "終了位置": 16, "内容": "五百" },
+      { "サイズ": 2, "行番号": 16, "開始位置": 0, "内容": "全" }, { "サイズ": 1, "行番号": 16.5, "終了位置": 16, "内容": "七十百言将銭" },
+      { "サイズ": 1, "行番号": 18.6, "開始位置": 0, "内容": "十二月九日" },
+      { "サイズ": 2, "行番号": 20.2, "開始位置": 0, "内容": "如右" }
+    ], null);
+  }
 
   async function loadFont() {
     const LinzklarRounded = new FontFace(
