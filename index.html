@@ -6,11 +6,13 @@
 </head>
 
 <body>
-  <button onclick="generate_image()">Generate</button>
+  <img src="receipt_example.png" />
   <br>
-  <canvas id="main_canvas"></canvas>
+  <button onclick="generate_image()" style="font-size: 80px;">生成</button>
   <br>
-  <button onclick="download_image()">Download</button>
+  <canvas height="591" width="1181" style="border: 5px dashed blue; margin: 15px 0 10px 0" id="main_canvas"></canvas>
+  <br>
+  <button onclick="download_image()" style="font-size: 80px;">下載</button>
 </body>
 <script>
   /**************
@@ -41,7 +43,7 @@
     LinzklarRounded.load().then(function (font) {
       document.fonts.add(font);
       console.log('Font loaded');
-      ctx.font = "20px LinzklarRounded"; // set font
+      ctx.font = "91px LinzklarRounded"; // set font
       ctx.textAlign = "center"; // center text
       ctx.fillText("汝於言将机戦", canvas.width / 2, canvas.height / 2); // draw centered text
     });
