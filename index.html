@@ -21,7 +21,8 @@
 ]
   </textarea>
   <br>
-  <button onclick="generate_image(JSON.parse(document.getElementById('input').textContent))" style="font-size: 80px;">生成</button>
+  <button onclick="generate_image(JSON.parse(document.getElementById('input').value))"
+    style="font-size: 80px;">生成</button>
   <br>
   <canvas height="591" width="1181" style="border: 5px dashed blue; margin: 15px 0 10px 0" id="main_canvas"></canvas>
   <br>
@@ -42,6 +43,17 @@
     { name: "斥銭", price: -500 },
   ];
 
+  async function loadFont() {
+    const LinzklarRounded = new FontFace(
+      'LinzklarRounded',
+      'url(https://yasusho.github.io/linmarn_font_project/fonts/rounded/linzklar_rounded.woff)'
+    );
+    await LinzklarRounded.load();
+    document.fonts.add(LinzklarRounded);
+    console.log('Font loaded');
+    document.body.classList.add("fonts-loaded");
+  }
+
   /*
    * 「サイズ」を基準とした方眼の上に字を書いていく。
    * 縦書きしたとき、一番右の行が行番号 0 となる。
@@ -52,42 +64,42 @@
    * そうでなくて、「終了位置」が指定されているならば、
    * 「行番号と終了位置が交差する位置」が、文字列全体を囲う枠の右下の角となるように文字を置いていく。
    */
-  function generate_image(content) {
+  async function generate_image(content) {
     const canvas = document.getElementById("main_canvas");
     const ctx = canvas.getContext("2d");
 
     const MARGIN_RIGHT = 31;
     const MARGIN_TOP = 20;
     const SIZE_FACTOR = 91 / 2;
-    const LinzklarRounded = new FontFace('LinzklarRounded', 'url(https://yasusho.github.io/linmarn_font_project/fonts/rounded/linzklar_rounded.woff)');
+    const MARGIN_LEFT = 140;
 
-    LinzklarRounded.load().then(function (font) {
-      document.fonts.add(font);
-      console.log('Font loaded');
-      ctx.font = "91px LinzklarRounded";
-      ctx.textAlign = "right";
-      ctx.textBaseline = "top";
+    canvas.width = MARGIN_LEFT + MARGIN_RIGHT + Math.max(...content.map(o => o.サイズ + o.行番号)) * SIZE_FACTOR;
 
-      content.forEach(o => {
-        const font_size = o.サイズ * SIZE_FACTOR;
-        ctx.font = `${font_size}px LinzklarRounded`;
+    await loadFont();
 
-        if (o.開始位置 != null && o.終了位置 != null) {
-          alert("開始位置と終了位置を両方指定することはできません");
-          throw new Error("開始位置と終了位置を両方指定することはできません");
-        }
+    ctx.textAlign = "right";
+    ctx.textBaseline = "top";
 
-        const 開始位置 = o.開始位置 ?? o.終了位置 - o.サイズ * o.内容.length;
+    content.forEach(o => {
+      const font_size = o.サイズ * SIZE_FACTOR;
+      ctx.font = `${font_size}px LinzklarRounded`;
 
-        [...o.内容].map((char, ind) => {
-            ctx.fillText(
-              char,
-              1181 - MARGIN_RIGHT - SIZE_FACTOR * o.行番号,
-              MARGIN_TOP + font_size * ind + SIZE_FACTOR * 開始位置
-            );
-        });
+      if (o.開始位置 != null && o.終了位置 != null) {
+        alert("開始位置と終了位置を両方指定することはできません");
+        throw new Error("開始位置と終了位置を両方指定することはできません");
+      }
+
+      const 開始位置 = o.開始位置 ?? o.終了位置 - o.サイズ * o.内容.length;
+
+      [...o.内容].map((char, ind) => {
+        ctx.fillText(
+          char,
+          canvas.width - MARGIN_RIGHT - SIZE_FACTOR * o.行番号,
+          MARGIN_TOP + font_size * ind + SIZE_FACTOR * 開始位置
+        );
       });
     });
+
   }
 
   function download_image() {
