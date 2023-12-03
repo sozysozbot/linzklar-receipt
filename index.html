@@ -5,10 +5,23 @@
   <title>燐字領収書</title>
 </head>
 
-<body>
-  <img src="receipt_example.png" />
+<body style="font-size: 30px;">
+  <h1>燐字領収書</h1>
+  <textarea id="input" style="font-size: 30px;" rows="12" cols="140">
+[
+  { "サイズ": 2, "行番号": 0, "開始位置": 0, "内容": "汝於言将机戦" },
+  { "サイズ": 2, "行番号": 2, "開始位置": 0, "内容": "人等与銭如此" },
+  { "サイズ": 2, "行番号": 4.8, "開始位置": 0, "内容": "机戦" }, { "サイズ": 1, "行番号": 5.3, "終了位置": 12, "内容": "六十百" },
+  { "サイズ": 2, "行番号": 7.6, "開始位置": 0, "内容": "紙机戦" }, { "サイズ": 1, "行番号": 8.1, "終了位置": 12, "内容": "十五百" },
+  { "サイズ": 2, "行番号": 10.4, "開始位置": 0, "内容": "軟学清字" }, { "サイズ": 1, "行番号": 10.9, "終了位置": 12, "内容": "五百" },
+  { "サイズ": 2, "行番号": 13.2, "開始位置": 0, "内容": "斥銭" }, { "サイズ": 1, "行番号": 13.7, "終了位置": 12, "内容": "五百" },
+  { "サイズ": 2, "行番号": 16, "開始位置": 0, "内容": "全" }, { "サイズ": 1, "行番号": 16.5, "終了位置": 12, "内容": "七十百言将銭" },
+  { "サイズ": 1, "行番号": 18.6, "開始位置": 0, "内容": "十二月九日" },
+  { "サイズ": 2, "行番号": 20.2, "開始位置": 0, "内容": "如右" }
+]
+  </textarea>
   <br>
-  <button onclick="generate_image()" style="font-size: 80px;">生成</button>
+  <button onclick="generate_image(JSON.parse(document.getElementById('input').textContent))" style="font-size: 80px;">生成</button>
   <br>
   <canvas height="591" width="1181" style="border: 5px dashed blue; margin: 15px 0 10px 0" id="main_canvas"></canvas>
   <br>
@@ -39,31 +52,13 @@
    * そうでなくて、「終了位置」が指定されているならば、
    * 「行番号と終了位置が交差する位置」が、文字列全体を囲う枠の右下の角となるように文字を置いていく。
    */
-  const content = [
-    { サイズ: 2, 行番号: 0, 開始位置: 0, 内容: "汝於言将机戦" },
-    { サイズ: 2, 行番号: 2, 開始位置: 0, 内容: "人等与銭如此" },
-    { サイズ: 2, 行番号: 4.8, 開始位置: 0, 内容: "机戦" }, { サイズ: 1, 行番号: 5.3, 終了位置: 12, 内容: "六十百" },
-    { サイズ: 2, 行番号: 7.6, 開始位置: 0, 内容: "紙机戦" }, { サイズ: 1, 行番号: 8.1, 終了位置: 12, 内容: "十五百" },
-    { サイズ: 2, 行番号: 10.4, 開始位置: 0, 内容: "軟学清字" }, { サイズ: 1, 行番号: 10.9, 終了位置: 12, 内容: "五百" },
-    { サイズ: 2, 行番号: 13.2, 開始位置: 0, 内容: "斥銭" }, { サイズ: 1, 行番号: 13.7, 終了位置: 12, 内容: "五百" },
-    { サイズ: 2, 行番号: 16, 開始位置: 0, 内容: "全" }, { サイズ: 1, 行番号: 16.5, 終了位置: 12, 内容: "七十百言将銭" },
-    { サイズ: 1, 行番号: 18.6, 開始位置: 0, 内容: "十二月九日" },
-    { サイズ: 2, 行番号: 20.2, 開始位置: 0, 内容: "如右" },
-  ];
-
-  function generate_image() {
+  function generate_image(content) {
     const canvas = document.getElementById("main_canvas");
     const ctx = canvas.getContext("2d");
 
     const MARGIN_RIGHT = 31;
     const MARGIN_TOP = 20;
     const SIZE_FACTOR = 91 / 2;
-
-    //const sample_image = new Image(1181, 591);
-    //sample_image.src = "receipt_example.png";
-    //sample_image.onload = () => {
-    // ctx.drawImage(sample_image, 0, 0);
-
     const LinzklarRounded = new FontFace('LinzklarRounded', 'url(https://yasusho.github.io/linmarn_font_project/fonts/rounded/linzklar_rounded.woff)');
 
     LinzklarRounded.load().then(function (font) {
@@ -93,7 +88,6 @@
         });
       });
     });
-    //}
   }
 
   function download_image() {
