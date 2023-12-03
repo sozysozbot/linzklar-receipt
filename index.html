@@ -16,8 +16,10 @@
     { name: "極軟片遊", price: 2800 },
     { name: "行山", price: 2800 },
     { name: "裁六軸", price: 500 },
-    { name: "斥銭", price: -500 },
+    { name: "斥", price: -500 },
   ];
+
+  const PRODUCT_MAP = new Map(PRODUCTS.map(({ name, price }) => [name, price]));
 </script>
 
 <body style="font-size: 12px;">
@@ -47,7 +49,7 @@
       </li>
       <li>日付:
         <input type="number" id="month" min="1" max="12" size="4" style="font-size: 12px;" value="12">月<input
-          type="number" id="month" min="1" max="31" size="4" style="font-size: 12px;" value="9">日
+          type="number" id="date" min="1" max="31" size="4" style="font-size: 12px;" value="9">日
       </li>
     </ul>
 
@@ -72,42 +74,140 @@
   </textarea>
   <br>
   <button onclick="generate_image(JSON.parse(document.getElementById('input').value))"
-    style="font-size: 24px;">生成</button>
+    style="font-size: 24px;">発行</button>
   <br>
   <div style="zoom: 0.4;">
     <canvas height="591" width="1181" style="border: 5px dashed blue; margin: 15px 0 10px 0" id="main_canvas"></canvas>
   </div>
   <br>
-  <button onclick="download_image()" style="font-size: 24px;">下載</button>
+  <button onclick="download_image()" style="font-size: 24px;">ダウンロード</button>
 </body>
 <script>
+
+  function toDigitsLinzklar(num) {
+    function toLinzklar(a) {
+      const obj = {
+        neg: "下",
+        num00: "無",
+        num01: "一",
+        num02: "二",
+        num03: "三",
+        num04: "四",
+        num05: "五",
+        num06: "六",
+        num07: "七",
+        num08: "八",
+        num09: "九",
+        num10: "十",
+        num100: "百",
+      };
+      return obj[a];
+    }
+    return toDigits(num).map(toLinzklar).join("");
+  }
+
+  function toDigits(num) {
+    if (num % 1 !== 0) {
+      throw new Error("non-integer");
+    } else if (num >= 200) {
+      const lastHundredArr =
+        num % 100 === 0 ? [] : toDigitsSub(num % 100);
+      return [...toDigitsSub(Math.floor(num / 100)), "num100", ...lastHundredArr];
+    } else if (num >= 100) {
+      const lastHundredArr = num % 100 === 0 ? [] : toDigits(num % 100);
+      return ["num100", ...lastHundredArr];
+    } else if (num < 0) {
+      return ["neg", ...toDigits(-num)];
+    } else if (num == 0) {
+      return ["num00"];
+    }
+
+    const lastDigitArr =
+      num % 10 === 0 ? [] : [`num0${num % 10}`];
+    if (num >= 20) {
+      return [`num0${Math.floor(num / 10)}`, "num10", ...lastDigitArr];
+    } else if (num >= 10) {
+      return ["num10", ...lastDigitArr];
+    } else {
+      return lastDigitArr;
+    }
+  }
+
+  // -6848 should be 下六八百四八, not 下六十八百四十八. This function thus converts 68 to 六八, not 六十八.
+  function toDigitsSub(num) {
+    if (num % 1 !== 0) {
+      throw new Error("non-integer");
+    } else if (num >= 100) {
+      throw new Error("100 or more detected in toDigitsSub");
+    } else if (num <= 0) {
+      throw new Error("0 or less detected in toDigitsSub");
+    }
+
+    if (num % 10 === 0) {
+      if (num >= 20) {
+        return [`num0${Math.floor(num / 10)}`, "num10"];
+      } else if (num == 10) {
+        return ["num10"];
+      } else {
+        throw new Error("cannot happen");
+      }
+    } else {
+      const lastDigit = `num0${num % 10}`;
+      if (num >= 20) {
+        return [`num0${Math.floor(num / 10)}`, lastDigit];
+      } else if (num >= 10) {
+        return ["num10", lastDigit];
+      } else {
+        return [lastDigit];
+      }
+    }
+  }
+
   /**
-   * @param {{id: string, value: string}[]} form_info 
+   * @param {{id, value}[]} form_info 
    */
   function make_json(form_info) {
     const form = new Map(form_info.map(({ id, value }) => [id, value]));
     const title_text_lines = form.get("title_text").split("/");
 
-    const content = title_text_lines.map((line, index) => (
+    let line_number_start = 0;
+
+    const title_content = title_text_lines.map((line, index) => (
       { "サイズ": 2, "行番号": index * 2, "開始位置": 0, "内容": line }
     ));
+
+    line_number_start += title_content.length * 2;
 
     // これは [ "机戦", "机戦", "机戦", "紙机戦", "軟学清字", "極軟片遊" ] みたいな配列になる
     const products = [...form].flatMap(([id, value]) => {
       if (!id.startsWith("count_")) return [];
-      return Array.from({ length: value }, () => id.slice("count_".length));
+      return Array.from({ length: Number(value) }, () => id.slice("count_".length));
     });
 
+    const product_content = products.flatMap((prod_name, index) => [
+      { "サイズ": 2, "行番号": line_number_start + 2.8 * index + 0.8, "開始位置": 0, "内容": prod_name },
+      { "サイズ": 1, "行番号": line_number_start + 2.8 * index + 1.3, "終了位置": 16, "内容": toDigitsLinzklar(Math.abs(PRODUCT_MAP.get(prod_name))) }
+      // 割引額を正の数で表現したいらしいので、Math.abs を入れる
+    ]);
+
+    line_number_start += 2.8 * products.length + 0.8;
+
+    const total_price = products.map(prod_name => PRODUCT_MAP.get(prod_name)).reduce((a, b) => a + b, 0);
+    console.log({ total_price });
+
+    const total_content = [
+      { "サイズ": 2, "行番号": line_number_start, "開始位置": 0, "内容": "全" },
+      { "サイズ": 1, "行番号": line_number_start + .5, "終了位置": 16, "内容": `${toDigitsLinzklar(total_price)}言将銭` }
+    ];
+
+    line_number_start += 2;
 
     return JSON.stringify([
-      ...content,
-      { "サイズ": 2, "行番号": 4.8, "開始位置": 0, "内容": "机戦" }, { "サイズ": 1, "行番号": 5.3, "終了位置": 16, "内容": "六十百" },
-      { "サイズ": 2, "行番号": 7.6, "開始位置": 0, "内容": "紙机戦" }, { "サイズ": 1, "行番号": 8.1, "終了位置": 16, "内容": "十五百" },
-      { "サイズ": 2, "行番号": 10.4, "開始位置": 0, "内容": "軟学清字" }, { "サイズ": 1, "行番号": 10.9, "終了位置": 16, "内容": "五百" },
-      { "サイズ": 2, "行番号": 13.2, "開始位置": 0, "内容": "斥銭" }, { "サイズ": 1, "行番号": 13.7, "終了位置": 16, "内容": "五百" },
-      { "サイズ": 2, "行番号": 16, "開始位置": 0, "内容": "全" }, { "サイズ": 1, "行番号": 16.5, "終了位置": 16, "内容": "七十百言将銭" },
-      { "サイズ": 1, "行番号": 18.6, "開始位置": 0, "内容": "十二月九日" },
-      { "サイズ": 2, "行番号": 20.2, "開始位置": 0, "内容": "如右" }
+      ...title_content,
+      ...product_content,
+      ...total_content,
+      { "サイズ": 1, "行番号": line_number_start + .6, "開始位置": 0, "内容": `${toDigitsLinzklar(Number(form.get("month")))}月${toDigitsLinzklar(Number(form.get("date")))}日` },
+      { "サイズ": 2, "行番号": line_number_start + 2.2, "開始位置": 0, "内容": "如右" }
     ], null);
   }
 
