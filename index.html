@@ -1,21 +1,51 @@
 <!DOCTYPE html>
+
 <head>
   <meta charset="utf-8">
   <title>燐字領収書</title>
 </head>
-<body>
-  <canvas id="main_canvas"></canvas>
 
-  <button onclick="download_image()">
-    Download
-  </button>
+<body>
+  <button onclick="generate_image()">Generate</button>
+  <br>
+  <canvas id="main_canvas"></canvas>
+  <br>
+  <button onclick="download_image()">Download</button>
 </body>
 <script>
-  const canvas = document.getElementById("main_canvas");
-  const ctx = canvas.getContext("2d");
-  ctx.beginPath();
-  ctx.arc(100, 75, 50, 0, 2 * Math.PI);
-  ctx.stroke();
+  /**************
+   * 品目のリスト
+   **************/
+  const PRODUCTS = [
+    { name: "机戦", price: 6000 },
+    { name: "紙机戦", price: 1500 },
+    { name: "軟学清字", price: 500 },
+    { name: "我等之遊術", price: 1500 },
+    { name: "極軟片遊", price: 2800 },
+    { name: "行山", price: 2800 },
+    { name: "裁六軸", price: 500 },
+    { name: "斥銭", price: -500 },
+  ];
+
+  const TITLE_TEXT = ["汝於言将机戦", "人等与銭如此"];
+
+  function generate_image() {
+    const canvas = document.getElementById("main_canvas");
+    const ctx = canvas.getContext("2d");
+    ctx.beginPath();
+    ctx.arc(100, 75, 50, 0, 2 * Math.PI);
+    ctx.stroke();
+
+    const LinzklarRounded = new FontFace('LinzklarRounded', 'url(https://yasusho.github.io/linmarn_font_project/fonts/rounded/linzklar_rounded.woff)');
+
+    LinzklarRounded.load().then(function (font) {
+      document.fonts.add(font);
+      console.log('Font loaded');
+      ctx.font = "20px LinzklarRounded"; // set font
+      ctx.textAlign = "center"; // center text
+      ctx.fillText("汝於言将机戦", canvas.width / 2, canvas.height / 2); // draw centered text
+    });
+  }
 
   function download_image() {
     const canvas = document.getElementById("main_canvas");
