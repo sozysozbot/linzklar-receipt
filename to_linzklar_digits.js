@@ -6,7 +6,7 @@ function toDigitsLinzklar(num) {
     } else if (num >= 2 * 100 * 100) {
       const lastMyriadArr =
         num % 10000 === 0 ? [] : toDigits(num % 10000);
-      return [...toDigits(Math.floor(num / 100)), "万", ...lastMyriadArr];
+      return [...toDigits(Math.floor(num / 10000)), "万", ...lastMyriadArr];
     } else if (num >= 100 * 100) {
       const lastMyriadArr = num % 10000 === 0 ? [] : toDigits(num % 10000);
       return ["万", ...lastMyriadArr];
