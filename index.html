@@ -32,21 +32,22 @@
         <input id="title_text" value="汝於言将机戦人等/与銭而受之物如此" style="font-size: 12px;" size="30">
       </li>
       <li>
-        品物:<ul>
+        品物:<div style="padding-inline-start: 30px;">
           <script>
 
-            document.write(`<table>
+            document.write(`<table style="border-collapse: collapse;">
           ${PRODUCTS.map(o => `<tr>
             <td>${o.name}</td>
             <td>:&nbsp;&nbsp;&nbsp;</td>
-            <td><input type="number" id="count_${o.name}" min="0" max="5" style="font-size: 12px; line-height: 1.2em" size="3" value="0"></td>
+            <td><input type="number" onchange="calculate_total_price_from_form_and_display(); generate_image(JSON.parse(make_json([...document.querySelectorAll('form input')].map(dom => ({id: dom.id, value: dom.value})))))" id="count_${o.name}" min="0" max="5" style="font-size: 12px; line-height: 1.2em" size="3" value="0"></td>
             <td>×</td>
             <td style="text-align: right">${o.price}円</td>
           </tr>`).join("")}
+          <tr style="border-top: 1px solid black"><td>全</td><td></td><td></td><td></td><td style="text-align: right"><span id="total_price"></span>円</td></tr>
         </table>
           `)
           </script>
-        </ul>
+        </div>
       </li>
       <li>日付:
         <input type="number" id="month" min="1" max="12" size="4" style="font-size: 12px;" value="12">月<input
@@ -55,6 +56,7 @@
     </ul>
 
   </form>
+  <!--
   <button
     onclick="document.getElementById('input').value = make_json([...document.querySelectorAll('form input')].map(dom => ({id: dom.id, value: dom.value})))"
     style="font-size: 24px;">注文</button>
@@ -75,15 +77,27 @@
   </textarea>
   <br>
   <button onclick="generate_image(JSON.parse(document.getElementById('input').value))"
-    style="font-size: 24px;">発行</button>
-  <br>
+    style="font-size: 24px;">発行</button> 
+    <br>
+  -->
   <div style="zoom: 0.4;">
-    <canvas height="591" width="1181" style="border: 5px dashed blue; margin: 15px 0 10px 0" id="main_canvas"></canvas>
+    <canvas height="773" width="1181" style="border: 5px dashed blue; margin: 15px 0 10px 0" id="main_canvas"></canvas>
   </div>
   <br>
   <button onclick="download_image()" style="font-size: 24px;">ダウンロード</button>
 </body>
 <script>
+  function calculate_total_price_from_form_and_display() {
+    const form_info = [...document.querySelectorAll('form input')].map(dom => ({id: dom.id, value: dom.value}));
+    const form = new Map(form_info.map(({ id, value }) => [id, value]));
+    // これは [ "机戦", "机戦", "机戦", "紙机戦", "軟学清字", "極軟片遊" ] みたいな配列になる
+    const products = [...form].flatMap(([id, value]) => {
+      if (!id.startsWith("count_")) return [];
+      return Array.from({ length: Number(value) }, () => id.slice("count_".length));
+    });
+    const total_price = products.map(prod_name => PRODUCT_MAP.get(prod_name)).reduce((a, b) => a + b, 0);
+    document.getElementById("total_price").textContent = total_price;
+  }
   /**
    * @param {{id, value}[]} form_info 
    */
