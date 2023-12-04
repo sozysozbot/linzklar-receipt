@@ -179,9 +179,12 @@
 
     canvas.width = MARGIN_LEFT + MARGIN_RIGHT + SIZE_FACTOR * Math.max(...content.map(o => o.サイズ + o.行番号));
     canvas.height = MARGIN_TOP + MARGIN_BOTTOM + SIZE_FACTOR * Math.max(...content.map(o => o.終了位置 ?? o.開始位置 + o.サイズ * o.内容.length));
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     await loadFont();
 
+    ctx.fillStyle = "black";
     ctx.textAlign = "right";
     ctx.textBaseline = "top";
 
