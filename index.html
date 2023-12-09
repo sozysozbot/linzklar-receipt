@@ -53,6 +53,9 @@
         <input type="number" id="month" min="1" max="12" size="4" style="font-size: 12px;" value="12">月<input
           type="number" id="date" min="1" max="31" size="4" style="font-size: 12px;" value="9">日
       </li>
+      <li>Discord WebHook URL：
+        <input type="url" id="webhook" onchange="localStorage.setItem('webHookUrl', this.value)" style="font-size: 12px;">
+      </li>
     </ul>
 
   </form>
@@ -84,7 +87,8 @@
     <canvas height="773" width="1181" style="border: 5px dashed blue; margin: 15px 0 10px 0" id="main_canvas"></canvas>
   </div>
   <br>
-  <button onclick="download_image()" style="font-size: 24px;">ダウンロード</button>
+  <button onclick="download_image();post_to_discord()" style="font-size: 24px;">ダウンロード＆ポスト</button>
+  <button onclick="post_to_discord()" style="font-size: 24px;">ポストだけ</button>
 </body>
 <script>
   function calculate_total_price_from_form_and_display() {
@@ -224,4 +228,33 @@
     link.click();
     link.remove();
   }
+
+  function load_webhook_url() {
+    const url = localStorage.getItem("webHookUrl");
+    if (url) {
+      const url_input = document.getElementById("webhook");
+      url_input.value = url;
+    }
+  }
+
+  function post_to_discord() {
+    const url = document.getElementById("webhook").value;
+    if (!url.startsWith("https://discord.com/api/webhooks/")) return;
+
+    const form_data = [...document.querySelectorAll('form input')].map(dom => ({id: dom.id, value: dom.value}));
+    const display_data = make_json(form_data);
+
+    const data = JSON.parse(display_data).map(line => line["内容"]).join("\n");
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        "content": data,
+      }),
+    });
+  }
+
+  load_webhook_url();
 </script>
